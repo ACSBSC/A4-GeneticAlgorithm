@@ -1,4 +1,4 @@
-#S1
+#Genetic Algorithm
 
 
 function select()
