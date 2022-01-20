@@ -8,7 +8,10 @@ function main(args)
       println("Warning : too many arguments (1 expected). Only 1 will be considered.")
     end
 
-    path = args[1]
+    path = "./A4-portfolios/"*args[1]
+    var = split(args[1], ".")
+    path2 = "./A4-portfolios/"*var[1]*"_eff.txt"
+    println(path2)
     K = 5
     L = 0.1
     U = 1
@@ -17,6 +20,23 @@ function main(args)
 
     meanStandardA = Array{Float64}(undef, 0, 2) 
     indexCorrelationA = Array{Float64}(undef, 0, 3)
+    riskReturn = Array{Float64}(undef, 0, 2) 
+
+    open(path2) do f
+
+        # line_number
+        line = 0         
+        # read till end of file
+        while ! eof(f) 
+           # read a new / next line for every iteration 
+            s = readline(f)       
+           
+            chunks = split(s, ' ')
+            temp = [parse(Float64,x) for x in chunks]
+            temp = reshape(temp, (1,2))
+            riskReturn = [riskReturn; temp]
+        end
+    end
 
     open(path) do f
 
