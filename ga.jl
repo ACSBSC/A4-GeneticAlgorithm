@@ -56,16 +56,27 @@ end
 # one point crossover, change 𝜇 values between the selected stocks
 function crossover(selected, meanStandardA, K)
     
-    for i in 1:K
-    
+    println()
+    for i in 1:K-1
+        𝜇= meanStandardA[selected[i], 1]
+        meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
+        meanStandardA[selected[i+1], 1] = 𝜇
     end
+    println()
+    
     return meanStandardA
 end
 
 # swap numbers within 𝜎 of the selected stocks
 # one random stock is mutated
 function mutation(selected, meanStandardA, K)
-
+    println()
+    for i in 1:K
+        𝜇= meanStandardA[selected[i], 1]
+        meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
+        meanStandardA[selected[i+1], 1] = 𝜇
+    end
+    println()
     return meanStandardA
 end
 
@@ -91,8 +102,9 @@ function geneticAlgorithm(N, K, P, U, correlationMatrix, meanStandardA, riskRetu
         for pair in 1:size(fitness, 1)/K
             
             selected, x = selection(population, fitness, K, N, U)
-            #meanStandardA = crossover(selected, meanStandardA, K)
-            #meanStandardA = mutation(selected, meanStandardA, K)
+            meanStandardA = crossover(selected, meanStandardA, K)
+            
+            meanStandardA = mutation(selected, meanStandardA, K)
 
             #p_next = [p_next, selected] #array of indexes
             
