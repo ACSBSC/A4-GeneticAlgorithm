@@ -9,14 +9,14 @@
 
 function expectedReturn(K, x, meanStandardA, selected)
     sum = 0
-    println(x)
+  
     for i in 1:K
         index = selected[i]
         𝜇= meanStandardA[index, 1]
-        println(𝜇)
+        
         sum+= x[i]*𝜇
     end
-    println(sum)
+   
     return sum
 end
 function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
@@ -27,16 +27,16 @@ function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
         for j in 1:K
             index_j = selected[j]
             𝜎j= meanStandardA[index_j, 1]
-            V = 𝜎i*𝜎j*correlationMatrix[i,j]
+            V = 𝜎i*𝜎j*correlationMatrix[index_i,index_j]
             sum+= x[i]*x[j]*V
         end
     end
-    println(sum)
+   
     return sum
 end
 
-function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U)
-
+function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U, K)
+    
 end
 
 # Output [[i, xi]]
