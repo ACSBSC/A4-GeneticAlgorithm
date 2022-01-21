@@ -10,35 +10,8 @@
 # P --> where 𝜆 comes from
 
 
-#include("s2.jl")
+include("s2.jl")
 
-function expectedRetrun(K, x, meanStandardA, selected)
-    sum = 0
-    println(x)
-    for i in 1:K
-        index = selected[i]
-        𝜇= meanStandardA[index, 1]
-        println(𝜇)
-        sum+= x[i]*𝜇
-    end
-    println(sum)
-    return sum
-end
-function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
-    sum = 0
-    for i in 1:K
-        index_i = selected[i]
-        𝜎i= meanStandardA[index_i, 1]
-        for j in 1:K
-            index_j = selected[j]
-            𝜎j= meanStandardA[index_j, 1]
-            V = 𝜎i*𝜎j*correlationMatrix[i,j]
-            sum+= x[i]*x[j]*V
-        end
-    end
-    println(sum)
-    return sum
-end
 
 #tournament selection
 # fitness
@@ -71,7 +44,7 @@ end
 # one point crossover, change 𝜇 values between the selected stocks
 function crossover(selected, meanStandardA, K)
     
-    println()
+
     for i in 1:K-1
         𝜇= meanStandardA[selected[i], 1]
         meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
@@ -97,23 +70,19 @@ function mutation(selected, meanStandardA)
     𝜎 = parse(Float64,  𝜎)
     meanStandardA[selected[rnd], 2] = 𝜎
 
-    println()
     return meanStandardA
 end
 
 
 
-function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
+function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
     num_gen = 10
     
     population = collect(1:N)
-    
-    step = 1/(N+3)
-    
-    fitness = collect(0.1:step:1)
    
-    sol = Array{Float64}(undef, 0, (5+2*K))
+    sol = Array{Float64}(undef, 0, 6)
     
+    x = [0.2, 0.35, 0.15, 0.2, 0.1]
 
     for gen in 1:num_gen
         p_next = Array{Int}(undef, 0, 5)
@@ -128,17 +97,19 @@ function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
-            #s2 swarm particle
-            ret = expectedRetrun(K, x, meanStandardA, selected)
+            x, ret, risk = swarm_particle(N, meanStandardA, correlationMatrix, L, U)
+
+            #ret = expectedRetrun(K, x, meanStandardA, selected)
             #risk = expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
             #E will be calculated and added to E array
             #Risk and return are calculated and added to its arrays
-            #sol = [sol; [𝜆, ret, risk, E, selected, x]]
+            E = 𝜆*risk - (1-𝜆)*ret
+            sol = [sol; reshape([𝜆, ret, risk, E, selected, x], (1,6))]
         end
         
     end
-
-    
+    println()
+    println(sol)
 
 end
 

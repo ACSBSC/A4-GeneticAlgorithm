@@ -82,7 +82,7 @@ function main(args)
     step = 1/P
     𝜆s = collect(0.01:step:1)
     𝜆 = 0.01
-    geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
+    geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
 
     #plot risk vs return scatter plot
     pareto = false
