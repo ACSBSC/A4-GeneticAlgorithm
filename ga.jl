@@ -36,7 +36,6 @@ function selection(population, meanStandardA, K, N)
 
     end
 
-    #normalize xi so that its sum is U
     return stocks
 end
 
@@ -76,10 +75,10 @@ end
 
 function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
     num_gen = 10
-
+    pareto = false
     population = collect(1:N)
    
-    sol = Array{Float64}(undef, 0, 6)
+    sol = Array{Float64}(undef, 0, 7)
     
     x = [0.2, 0.35, 0.15, 0.2, 0.1]
 
@@ -96,20 +95,16 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
-            x, ret, risk = bestProportions(selected, meanStandardA, correlationMatrix, L, U)
+            x, ret, risk = bestProportions(selected, meanStandardA, correlationMatrix, L, U, K)
 
-            #ret = expectedRetrun(K, x, meanStandardA, selected)
-            #risk = expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
-            #E will be calculated and added to E array
-            #Risk and return are calculated and added to its arrays
             E = 𝜆*risk - (1-𝜆)*ret
-            sol = [sol; reshape([𝜆, ret, risk, E, selected, x], (1,6))]
+            sol = [sol; reshape([𝜆, ret, risk, E, selected, x, pareto], (1,7))]
         end
         
     end
     println()
-    println(sol)
-
+    #println(sol)
+    return sol
 
 
 end
