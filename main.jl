@@ -85,6 +85,7 @@ function main(args)
     geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
 
     #plot risk vs return scatter plot
+    pareto = false
 
 end
 

@@ -12,17 +12,38 @@
 
 #include("s2.jl")
 
-function expectedRetrun()
-
+function expectedRetrun(K, x, meanStandardA, selected)
+    sum = 0
+    println(x)
+    for i in 1:K
+        index = selected[i]
+        𝜇= meanStandardA[index, 1]
+        println(𝜇)
+        sum+= x[i]*𝜇
+    end
+    println(sum)
+    return sum
 end
-function expectedRisk()
-
+function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
+    sum = 0
+    for i in 1:K
+        index_i = selected[i]
+        𝜎i= meanStandardA[index_i, 1]
+        for j in 1:K
+            index_j = selected[j]
+            𝜎j= meanStandardA[index_j, 1]
+            V = 𝜎i*𝜎j*correlationMatrix[i,j]
+            sum+= x[i]*x[j]*V
+        end
+    end
+    println(sum)
+    return sum
 end
 
 #tournament selection
-# 𝜇
+# fitness
 # output [index] 
-function selection(population, fitness, K, N, U) 
+function selection(population, meanStandardA, K, N) 
     
     stocks = zeros(Int, K)
     x = zeros(Float64, K)
@@ -35,7 +56,7 @@ function selection(population, fitness, K, N, U)
        
         for j in 1:num
             pos = population[floor(Int, rand(1:N))]
-            if fitness[pos]>fitness[winner] && (pos in stocks) == false
+            if meanStandardA[pos,1]>meanStandardA[winner,1] && (pos in stocks) == false
                 winner = pos
             end
         end
@@ -43,26 +64,8 @@ function selection(population, fitness, K, N, U)
         
     end
 
-    i = 1
-    sum = 0
-    for s in stocks
-        x[i] = fitness[s]
-        sum += x[i]
-        i+=1
-    end
-
     #normalize xi so that its sum is U
-    #change normalization later
-    rest = (sum-1)/K
-    sum = 0
-    for j in 1:K
-        x[j] -= rest
-        sum += x[j]
-    end
-   
-
-    #normalize xi so that its sum is U
-    return stocks, x
+    return stocks
 end
 
 # one point crossover, change 𝜇 values between the selected stocks
@@ -102,7 +105,7 @@ end
 
 function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
     num_gen = 10
-    pareto = false
+    
     population = collect(1:N)
     
     step = 1/(N+3)
@@ -117,17 +120,20 @@ function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
         
         for pair in 1:N/K
             
-            selected, x = selection(population, fitness, K, N, U)
-            meanStandardA = crossover(selected, meanStandardA, K)
+            selected = selection(population, meanStandardA, K, N)
             
+            meanStandardA = crossover(selected, meanStandardA, K)            
             meanStandardA = mutation(selected, meanStandardA)
             
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
+            #s2 swarm particle
+            ret = expectedRetrun(K, x, meanStandardA, selected)
+            #risk = expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
             #E will be calculated and added to E array
             #Risk and return are calculated and added to its arrays
-            #sol = [sol; [𝜆, ret, risk, E, Pareto, selected, x]]
+            #sol = [sol; [𝜆, ret, risk, E, selected, x]]
         end
         
     end
