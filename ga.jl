@@ -96,7 +96,7 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
-            x, ret, risk = swarm_particle(N, meanStandardA, correlationMatrix, L, U)
+            x, ret, risk = bestProportions(selected, meanStandardA, correlationMatrix, L, U)
 
             #ret = expectedRetrun(K, x, meanStandardA, selected)
             #risk = expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
