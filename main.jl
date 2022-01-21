@@ -1,3 +1,5 @@
+include("ga.jl")
+
 function main(args)
     @show args
     if(size(args,1) < 1)
@@ -75,6 +77,8 @@ function main(args)
         correlationMatrix[i,j]= indexCorrelationA[k,3]
         correlationMatrix[j,i]= indexCorrelationA[k,3]
     end
+
+    geneticAlgorithm(N, K, P, U, correlationMatrix, meanStandardA, riskReturn)
 
 end
 
