@@ -42,12 +42,24 @@ function selection(population, fitness, K, N, U)
         stocks[i] = winner
         
     end
-    println()
+
     i = 1
+    sum = 0
     for s in stocks
         x[i] = fitness[s]
+        sum += x[i]
         i+=1
     end
+
+    #normalize xi so that its sum is U
+    #change normalization later
+    rest = (sum-1)/K
+    sum = 0
+    for j in 1:K
+        x[j] -= rest
+        sum += x[j]
+    end
+   
 
     #normalize xi so that its sum is U
     return stocks, x
@@ -62,61 +74,65 @@ function crossover(selected, meanStandardA, K)
         meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
         meanStandardA[selected[i+1], 1] = 𝜇
     end
-    println()
+ 
     
     return meanStandardA
 end
 
 # swap numbers within 𝜎 of the selected stocks
 # one random stock is mutated
-function mutation(selected, meanStandardA, K)
-    println()
-    for i in 1:K
-        𝜇= meanStandardA[selected[i], 1]
-        meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
-        meanStandardA[selected[i+1], 1] = 𝜇
-    end
+function mutation(selected, meanStandardA)
+    rnd = rand(1:5)
+    
+    𝜎 = string(meanStandardA[selected[rnd], 2])
+    m = sizeof(𝜎)
+    𝜎 = split(𝜎, "")
+    n = 𝜎[m-1]
+    𝜎[m-1] = 𝜎[m]
+    𝜎[m] = n
+    𝜎 = join(𝜎)
+    𝜎 = parse(Float64,  𝜎)
+    meanStandardA[selected[rnd], 2] = 𝜎
+
     println()
     return meanStandardA
 end
 
 
 
-function geneticAlgorithm(N, K, P, U, correlationMatrix, meanStandardA, riskReturn)
+function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
     num_gen = 10
     pareto = false
     population = collect(1:N)
-    step = 1/P
-    𝜆 = collect(0.01:step:1)
     
     step = 1/(N+3)
     
     fitness = collect(0.1:step:1)
    
-    sol = Array{Float64}(undef, 0, 2)
+    sol = Array{Float64}(undef, 0, (5+2*K))
     
 
     for gen in 1:num_gen
-        p_next = Array{Float64}(undef, 0, 0)
+        p_next = Array{Int}(undef, 0, 5)
         
-        for pair in 1:size(fitness, 1)/K
+        for pair in 1:N/K
             
             selected, x = selection(population, fitness, K, N, U)
             meanStandardA = crossover(selected, meanStandardA, K)
             
-            meanStandardA = mutation(selected, meanStandardA, K)
-
-            #p_next = [p_next, selected] #array of indexes
+            meanStandardA = mutation(selected, meanStandardA)
             
+            selected = reshape(selected, (1,5))
+            p_next = [p_next; selected] #array of indexes
             
             #E will be calculated and added to E array
             #Risk and return are calculated and added to its arrays
-            #sol = [sol; [gen, 𝜆, ret, risk, E, Pareto, selected, x]]
+            #sol = [sol; [𝜆, ret, risk, E, Pareto, selected, x]]
         end
         
     end
 
-    #plot risk vs return scatter plot
+    
 
 end
 

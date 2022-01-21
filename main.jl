@@ -78,7 +78,13 @@ function main(args)
         correlationMatrix[j,i]= indexCorrelationA[k,3]
     end
 
-    geneticAlgorithm(N, K, P, U, correlationMatrix, meanStandardA, riskReturn)
+    # make loop for lambda
+    step = 1/P
+    𝜆s = collect(0.01:step:1)
+    𝜆 = 0.01
+    geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
+
+    #plot risk vs return scatter plot
 
 end
 
