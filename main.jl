@@ -1,4 +1,5 @@
 include("ga.jl")
+using DelimitedFiles
 using Plots
 
 function paretoFinder(sol, riskReturn)
@@ -100,7 +101,8 @@ function main(args)
     end
 
     #store best portfolio and rest of them, ony best porfolio will be saved
-    bestPortfolios  = Array{Float64}(undef, 0, 7)
+    bestPortfolios  = Array{Any}(undef, 0, 7)
+    bestPortfolios = [bestPortfolios; reshape(["lambda", "Return", "Risk", "E[x,lambda]", "Stocks", "Investment", "Pareto"], (1,7))]
     portfolios  = Array{Float64}(undef, 0, 7)
     pareto = Array{Float64}(undef, 0, 7)
 
@@ -133,13 +135,17 @@ function main(args)
     println()
     println("Start Plotting...")
     scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
-    scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", label = "Best Portfolios")
+    scatter!(bestPortfolios[2:end,3],bestPortfolios[2:end,2], reuse = false, color = "red", label = "Best Portfolios")
     scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
     f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
     println()
     println("Finish Plotting || Starting to save the plot...")
     png(f2,string("Results/figure_Return_Risk.jpg"))
     println("Plot saved!")
+    println()
+    println("Saving Best Result in CSV file...")
+    writedlm("Results/results.csv",  bestPortfolios, ';')
+    println("File Saved...")
     println()
     println("Code Stops!")
 
