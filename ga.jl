@@ -10,7 +10,7 @@
 # P --> where 𝜆 comes from
 
 
-#include("s2.jl")
+include("s2.jl")
 
 #tournament selection
 # fitness
@@ -36,14 +36,13 @@ function selection(population, meanStandardA, K, N)
 
     end
 
-    #normalize xi so that its sum is U
     return stocks
 end
 
 # one point crossover, change 𝜇 values between the selected stocks
 function crossover(selected, meanStandardA, K)
+    
 
-    println()
     for i in 1:K-1
         𝜇= meanStandardA[selected[i], 1]
         meanStandardA[selected[i], 1] = meanStandardA[selected[i+1], 1]
@@ -61,31 +60,30 @@ function mutation(selected, meanStandardA)
 
     𝜎 = string(meanStandardA[selected[rnd], 2])
     m = sizeof(𝜎)
-    𝜎 = split(𝜎, "")
-    n = 𝜎[m-1]
-    𝜎[m-1] = 𝜎[m]
-    𝜎[m] = n
+    if m > 4
+        𝜎 = split(𝜎, "")
+        n = 𝜎[m-1]
+        𝜎[m-1] = 𝜎[m]
+        𝜎[m] = n
+    end
     𝜎 = join(𝜎)
+
     𝜎 = parse(Float64,  𝜎)
     meanStandardA[selected[rnd], 2] = 𝜎
 
-    println()
     return meanStandardA
 end
 
 
 
-function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
+function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
     num_gen = 10
-
+    pareto = false
     population = collect(1:N)
-
-    step = 1/(N+3)
-
-    fitness = collect(0.1:step:1)
-
-    sol = Array{Float64}(undef, 0, (5+2*K))
-
+   
+    sol = Array{Float64}(undef, 0, 7)
+    
+    x = [0.2, 0.35, 0.15, 0.2, 0.1]
 
     for gen in 1:num_gen
         p_next = Array{Int}(undef, 0, 5)
@@ -99,17 +97,22 @@ function geneticAlgorithm(N, K, 𝜆, U, correlationMatrix, meanStandardA)
 
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
+            
+            x, ret, risk, E = bestProportions(selected, meanStandardA, correlationMatrix, L, U, K, 𝜆)
 
-            #s2 swarm particle
-            ret = expectedRetrun(K, x, meanStandardA, selected)
-            #risk = expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
-            #E will be calculated and added to E array
-            #Risk and return are calculated and added to its arrays
-            #sol = [sol; [𝜆, ret, risk, E, selected, x]]
+            if risk < 0.01
+                sol = [sol; reshape([𝜆, ret, risk, E, selected, x, pareto], (1,7))]
+            end
         end
-
+        eliteStocks = zeros(Int, K)
+        for i in 1:K
+            eliteStocks[i] = population[rand(1:N)]
+        end
+        population = p_next
+        population = [population; reshape(eliteStocks, (1,5))]
+        
     end
-
+    return sol
 
 
 end

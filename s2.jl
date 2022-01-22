@@ -18,14 +18,14 @@ include("pso.jl")
 
 function expectedReturn(K, x, meanStandardA, selected)
     sum = 0
-    println(x)
-    for i = 1:K
+
+    for i in 1:K
         index = selected[i]
-        𝜇 = meanStandardA[index, 1]
-        println(𝜇)
-        sum += x[i] * 𝜇
+        𝜇= meanStandardA[index, 1]
+
+        sum+= x[i]*𝜇
     end
-    println(sum)
+
     return sum
 end
 
@@ -33,15 +33,15 @@ function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
     sum = 0
     for i = 1:K
         index_i = selected[i]
-        𝜎i = meanStandardA[index_i, 1]
-        for j = 1:K
+        𝜎i= meanStandardA[index_i, 2]
+        for j in 1:K
             index_j = selected[j]
-            𝜎j = meanStandardA[index_j, 1]
-            V = 𝜎i * 𝜎j * correlationMatrix[i, j]
-            sum += x[i] * x[j] * V
+            𝜎j= meanStandardA[index_j, 2]
+            V = 𝜎i*𝜎j*correlationMatrix[index_i,index_j]
+            sum+= x[i]*x[j]*V
         end
     end
-    println(sum)
+
     return sum
 end
 
@@ -66,7 +66,8 @@ function particle_swarm(
     particlesBest
 end
 
-function bestProportions(portfolio, meanStandardA, correlationMatrix, 𝜆)
+# function bestProportions(portfolio, meanStandardA, correlationMatrix, 𝜆)
+function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U, 𝜆)
 # function bestProportions()
     nDim = 2
     # nParticle = size(portfolio,1)
@@ -130,7 +131,7 @@ function bestProportions(portfolio, meanStandardA, correlationMatrix, 𝜆)
     # xlabel!("x")
     # ylabel!("y")
 
-    return (xs, xRisk, xReturn, optimisation)
+    return xs, xRisk, xReturn, optimisation
 end
 
 # Output [[i, xi]]
