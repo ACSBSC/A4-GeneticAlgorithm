@@ -1,8 +1,9 @@
 include("ga.jl")
 using Plots
 
-function paretoFinder(sol, riskReturn, bestPortfolios)
+function paretoFinder(sol, riskReturn)
     paretoPortfolios  = Array{Float64}(undef, 0, 7)
+    bestPortfolios  = Array{Float64}(undef, 0, 7)
     for i in 1: size(sol, 1)
         for j in 1:size(riskReturn, 1)
             if (sol[i,2] < riskReturn[j,1]+0.00003 && sol[i,2] > riskReturn[j,1]-0.00003) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
@@ -101,6 +102,7 @@ function main(args)
     #store best portfolio and rest of them, ony best porfolio will be saved
     bestPortfolios  = Array{Float64}(undef, 0, 7)
     portfolios  = Array{Float64}(undef, 0, 7)
+    pareto = Array{Float64}(undef, 0, 7)
 
     # here should be the loop for the lambdas
     step = 1/P
@@ -111,26 +113,35 @@ function main(args)
         sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
 
         #plot risk vs return scatter plot
-        paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn, bestPortfolios)
+        
+        paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn)
         
         scatter(sol[:,3],sol[:,2], reuse = false, color = "orange")
         scatter!(best[:,3],best[:,2], reuse = false, color = "red", label = "Best portfolios")
         scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", label = "Pareto front")
         
         f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue")
-        display(f)
         png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
     
-    
         bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
+        portfolios = [portfolios; sol]
+        pareto = [pareto; paretoPortfolios]
     end
-
-    #end for loop
-
-
-    
-    
-
+    println()
+    println("Finished calculation of portfolios for each lambda")
+    #Final plots for every lambda
+    println()
+    println("Start Plotting...")
+    scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
+    scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", label = "Best Portfolios")
+    scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Peretos")
+    f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
+    println()
+    println("Finish Plotting || Starting to save the plot...")
+    png(f2,string("Results/figure_Return_Risk.jpg"))
+    println("Plot saved!")
+    println()
+    println("Code Stops!")
 
 end
 
