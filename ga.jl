@@ -67,7 +67,7 @@ function mutation(selected, meanStandardA)
         𝜎[m] = n
     end
     𝜎 = join(𝜎)
-    #println(𝜎)
+
     𝜎 = parse(Float64,  𝜎)
     meanStandardA[selected[rnd], 2] = 𝜎
 
@@ -112,8 +112,6 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
         population = [population; reshape(eliteStocks, (1,5))]
         
     end
-    println()
-    #println(sol)
     return sol
 
 

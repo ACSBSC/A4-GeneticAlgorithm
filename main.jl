@@ -98,30 +98,37 @@ function main(args)
         correlationMatrix[j,i]= indexCorrelationA[k,3]
     end
 
-    # make loop for lambda
+    #store best portfolio and rest of them, ony best porfolio will be saved
     bestPortfolios  = Array{Float64}(undef, 0, 7)
+    portfolios  = Array{Float64}(undef, 0, 7)
 
+    # here should be the loop for the lambdas
     step = 1/P
     𝜆s = collect(0.01:step:1)
-    𝜆 = 0.01
-    sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
 
-    #plot risk vs return scatter plot
-    paretoPortfolios, sol, bestPortfolios  = paretoFinder(sol, riskReturn, bestPortfolios)
+    for 𝜆 in 𝜆s
+        println("Selecting best portfolios for lambda ", 𝜆)
+        sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
 
-  
+        #plot risk vs return scatter plot
+        paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn, bestPortfolios)
+        
+        scatter(sol[:,3],sol[:,2], reuse = false, color = "orange")
+        scatter!(best[:,3],best[:,2], reuse = false, color = "red", label = "Best portfolios")
+        scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", label = "Pareto front")
+        
+        f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue")
+        display(f)
+        png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
     
-    scatter(sol[:,3],sol[:,2], reuse = false, color = "orange")
-    scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", legend="best portfolios")
-    scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", legend = "pareto")
     
-    f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue")
-    display(f)
-    png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
-   
-    
+        bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
+    end
 
-    portfolios  = Array{Float64}(undef, 0, 7)
+    #end for loop
+
+
+    
     
 
 
