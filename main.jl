@@ -1,4 +1,24 @@
 include("ga.jl")
+using Plots
+
+function paretoFinder(sol, riskReturn, bestPortfolios)
+    paretoPortfolios  = Array{Float64}(undef, 0, 7)
+    for i in 1: size(sol, 1)
+        for j in 1:size(riskReturn, 1)
+            if (sol[i,2] < riskReturn[j,1]+0.00003 && sol[i,2] > riskReturn[j,1]-0.00003) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
+                paretoPortfolios = [paretoPortfolios; reshape(sol[i,:], (1,7))]
+                sol[i,7] = true
+            end
+            if (sol[i,2] > riskReturn[j,1]) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
+                bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
+            end
+        end
+    end
+    return paretoPortfolios, sol, bestPortfolios
+end
+
+
+
 
 function main(args)
     @show args
@@ -79,13 +99,31 @@ function main(args)
     end
 
     # make loop for lambda
+    bestPortfolios  = Array{Float64}(undef, 0, 7)
+
     step = 1/P
     𝜆s = collect(0.01:step:1)
     𝜆 = 0.01
-    geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
+    sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
 
     #plot risk vs return scatter plot
-    pareto = false
+    paretoPortfolios, sol, bestPortfolios  = paretoFinder(sol, riskReturn, bestPortfolios)
+
+  
+    
+    scatter(sol[:,3],sol[:,2], reuse = false, color = "orange")
+    scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", legend="best portfolios")
+    scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", legend = "pareto")
+    
+    f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue")
+    display(f)
+    png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
+   
+    
+
+    portfolios  = Array{Float64}(undef, 0, 7)
+    
+
 
 end
 
