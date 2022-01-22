@@ -95,6 +95,15 @@ function main(args)
 
     end
 
+    correlationMatrix = zeros((N,N))
+ 
+    for k in 1:size(indexCorrelationA, 1)
+        i = floor(Int, indexCorrelationA[k,1])
+        j = floor(Int, indexCorrelationA[k,2])
+        correlationMatrix[i,j]= indexCorrelationA[k,3]
+        correlationMatrix[j,i]= indexCorrelationA[k,3]
+    end
+
     #store best portfolio and rest of them, ony best porfolio will be saved
     bestPortfolios  = Array{Any}(undef, 0, 7)
     bestPortfolios = [bestPortfolios; reshape(["lambda", "Return", "Risk", "E[x,lambda]", "Stocks", "Investment", "Pareto"], (1,7))]

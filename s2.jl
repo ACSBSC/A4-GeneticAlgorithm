@@ -4,7 +4,7 @@
 
 # Pkg.add(PackageSpec(url = "https://github.com/bingining/PSO.jl.git"))
 using Pkg
-Pkg.add("LaTeXStrings")
+#Pkg.add("LaTeXStrings")
 using Plots, LaTeXStrings
 include("pso.jl")
 
@@ -79,8 +79,7 @@ function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U, 𝜆
     xs = zeros(K)
     ys = zeros(nRun)
 
-    fitFunc(x) = 𝜆 * expectedRisk(K, xs, meanStandardA, correlationMatrix, portfolio)
-    + (1-𝜆) * (-expectedReturn(K, xs, meanStandardA, portfolio))
+    fitFunc(x) = 𝜆 * expectedRisk(K, xs, meanStandardA, correlationMatrix, portfolio) + (1-𝜆) * (-expectedReturn(K, xs, meanStandardA, portfolio))
     # fitFunc(x) = (x[1] - 1 / 2)^2 + (x[2] - 1 / 2)^2
 
     # for i = 1:nRun
