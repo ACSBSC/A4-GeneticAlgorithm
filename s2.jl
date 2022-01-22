@@ -45,6 +45,48 @@ function expectedRisk(K, x, meanStandardA, correlationMatrix, selected)
     return sum
 end
 
+function matchConstraints(x, A, L, U)
+    # println("L = $L")
+    K = size(x,1)
+    normalisedX = zeros(K)
+    C = []
+    D = []
+    s = sum(x)
+    # println("sum(x) = $s")
+    for i in 1:K
+        normalisedX[i] = x[i]/s
+        if(normalisedX[i] < L)
+            push!(C,i)
+        else
+            push!(D,i)
+        end
+    end
+
+    # println("x AFTER normalisation = $normalisedX")
+    # println("C = $C")
+    # println("D = $D")
+
+    if(size(C,1) > 0)
+        available = 0
+        free = 0
+        for i in 1:size(D,1)
+            available = available + normalisedX[D[i]]
+        end
+        # println("available = $available")
+        free = 1 - L * K
+        # println("free = $free")
+        for i in 1:size(C,1)
+            normalisedX[C[i]] = L
+        end
+        # println("x AFTER clipping C to L = $normalisedX")
+        for i in 1:size(D,1)
+            normalisedX[D[i]] = L + normalisedX[D[i]] * free/available
+        end
+        # println("x AFTER distributing free prop = $normalisedX")
+    end
+    return normalisedX
+end
+
 function particle_swarm(
     fitFunc::Function,
     nDim::Int;
@@ -66,22 +108,22 @@ function particle_swarm(
     particlesBest
 end
 
-# function bestProportions(portfolio, meanStandardA, correlationMatrix, 𝜆)
-function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U, 𝜆)
+# function bestProportions(selectedAssets, meanStandardA, correlationMatrix, 𝜆)
+function bestProportions(selectedAssets, meanStandardA, correlationMatrix, L, U, 𝜆)
 # function bestProportions()
     nDim = 2
-    # nParticle = size(portfolio,1)
+    # nParticle = size(selectedAssets,1)
     nParticle = 5
     nInter = 4000
     nRun = 5
     # xs = Array{Float}(undef, nRun)
-    K = size(portfolio,1)
+    K = size(selectedAssets,1)
     xs = zeros(K)
     ys = zeros(nRun)
 
-    fitFunc(x) = 𝜆 * expectedRisk(K, xs, meanStandardA, correlationMatrix, portfolio)
-    + (1-𝜆) * (-expectedReturn(K, xs, meanStandardA, portfolio))
-    # fitFunc(x) = (x[1] - 1 / 2)^2 + (x[2] - 1 / 2)^2
+    # fitFunc(x) = 𝜆 * expectedRisk(K, xs, meanStandardA, correlationMatrix, selectedAssets)
+    # + (1-𝜆) * (-expectedReturn(K, xs, meanStandardA, selectedAssets))
+    fitFunc(x) = (x[1] - 1 / 2)^2 + (x[2] - 1 / 2)^2
 
     # for i = 1:nRun
     #     xs[i], ys[i] = particle_swarm(
@@ -98,8 +140,13 @@ function bestProportions(portfolio, meanStandardA, correlationMatrix, L, U, 𝜆
         nParticle = nParticle,
         nInter = nInter,
     )
-    xRisk = expectedRisk(K, xs, meanStandardA, correlationMatrix, portfolio)
-    xReturn = expectedReturn(K, xs, meanStandardA, portfolio)
+    println("x BEFORE matching constraints: $xs")
+    xs = matchConstraints(xs, selectedAssets, L, U)
+    println("x AFTER matching constraints: $xs")
+    s = sum(xs)
+    println("sum(x) = $s")
+    xRisk = expectedRisk(K, xs, meanStandardA, correlationMatrix, selectedAssets)
+    xReturn = expectedReturn(K, xs, meanStandardA, selectedAssets)
     optimisation = 𝜆 * xRisk + (1-𝜆) * (-xReturn)
 
     # print(size(xs))

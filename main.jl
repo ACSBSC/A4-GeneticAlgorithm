@@ -1,9 +1,7 @@
-<<<<<<< HEAD
+
 # include("ga.jl")
-include("s2.jl")
-=======
-include("ga.jl")
 using Plots
+include("s2.jl")
 
 function paretoFinder(sol, riskReturn)
     paretoPortfolios  = Array{Float64}(undef, 0, 7)
@@ -22,9 +20,6 @@ function paretoFinder(sol, riskReturn)
     return paretoPortfolios, sol, bestPortfolios
 end
 
-
-
->>>>>>> e8e2584edcc3e6c9dd3333ec75f5a145f51d7e2a
 
 function main(args)
     @show args
@@ -150,7 +145,7 @@ function main(args)
     # println()
     # println("Code Stops!")
 
-    print(bestProportions([1,2,3,4,5], meanStandardA, correlationMatrix, L, U, 0.4))
+    println(bestProportions([1,2,3,4,5], meanStandardA, correlationMatrix, L, U, 0.4))
 
 
 end
