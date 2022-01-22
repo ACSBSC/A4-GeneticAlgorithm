@@ -116,11 +116,11 @@ function main(args)
         
         paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn)
         
-        scatter(sol[:,3],sol[:,2], reuse = false, color = "orange")
+        scatter(sol[:,3],sol[:,2], reuse = false, color = "orange", label = "Portfolios")
         scatter!(best[:,3],best[:,2], reuse = false, color = "red", label = "Best portfolios")
         scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", label = "Pareto front")
         
-        f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue")
+        f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue", label = "Efficient Frontier Line")
         png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
     
         bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
@@ -134,7 +134,7 @@ function main(args)
     println("Start Plotting...")
     scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
     scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", label = "Best Portfolios")
-    scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Peretos")
+    scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
     f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
     println()
     println("Finish Plotting || Starting to save the plot...")
