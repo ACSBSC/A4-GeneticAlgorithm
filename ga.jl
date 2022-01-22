@@ -98,7 +98,7 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
-            x, ret, risk, E = bestProportions(selected, meanStandardA, correlationMatrix, L, U, K, 𝜆)
+            x, risk,ret, E = bestProportions(selected, meanStandardA, correlationMatrix, L, U, 𝜆)
 
             if risk < 0.01
                 sol = [sol; reshape([𝜆, ret, risk, E, selected, x, pareto], (1,7))]

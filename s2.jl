@@ -4,7 +4,7 @@
 
 # Pkg.add(PackageSpec(url = "https://github.com/bingining/PSO.jl.git"))
 using Pkg
-Pkg.add("LaTeXStrings")
+#Pkg.add("LaTeXStrings")
 using Plots, LaTeXStrings
 include("pso.jl")
 

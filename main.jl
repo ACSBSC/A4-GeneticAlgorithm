@@ -1,7 +1,6 @@
-
-# include("ga.jl")
+using DelimitedFiles
 using Plots
-include("s2.jl")
+include("ga.jl")
 
 function paretoFinder(sol, riskReturn)
     paretoPortfolios  = Array{Float64}(undef, 0, 7)
@@ -92,61 +91,66 @@ function main(args)
 
     end
 
-    correlationMatrix = zeros((N, N))
+    correlationMatrix = zeros((N,N))
 
-    for k = 1:size(indexCorrelationA, 1)
-        i = floor(Int, indexCorrelationA[k, 1])
-        j = floor(Int, indexCorrelationA[k, 2])
-        correlationMatrix[i, j] = indexCorrelationA[k, 3]
-        correlationMatrix[j, i] = indexCorrelationA[k, 3]
+    for k in 1:size(indexCorrelationA, 1)
+        i = floor(Int, indexCorrelationA[k,1])
+        j = floor(Int, indexCorrelationA[k,2])
+        correlationMatrix[i,j]= indexCorrelationA[k,3]
+        correlationMatrix[j,i]= indexCorrelationA[k,3]
     end
-    #
-    # #store best portfolio and rest of them, ony best porfolio will be saved
-    # bestPortfolios  = Array{Float64}(undef, 0, 7)
-    # portfolios  = Array{Float64}(undef, 0, 7)
-    # pareto = Array{Float64}(undef, 0, 7)
-    #
-    # # here should be the loop for the lambdas
-    # step = 1/P
-    # 𝜆s = collect(0.01:step:1)
-    #
-    # for 𝜆 in 𝜆s
-    #     println("Selecting best portfolios for lambda ", 𝜆)
-    #     sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
-    #
-    #     #plot risk vs return scatter plot
-    #
-    #     paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn)
-    #
-    #     scatter(sol[:,3],sol[:,2], reuse = false, color = "orange", label = "Portfolios")
-    #     scatter!(best[:,3],best[:,2], reuse = false, color = "red", label = "Best portfolios")
-    #     scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", label = "Pareto front")
-    #
-    #     f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue", label = "Efficient Frontier Line")
-    #     png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
-    #
-    #     bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
-    #     portfolios = [portfolios; sol]
-    #     pareto = [pareto; paretoPortfolios]
-    # end
-    # println()
-    # println("Finished calculation of portfolios for each lambda")
-    # #Final plots for every lambda
-    # println()
-    # println("Start Plotting...")
-    # scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
-    # scatter!(bestPortfolios[:,3],bestPortfolios[:,2], reuse = false, color = "red", label = "Best Portfolios")
-    # scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
-    # f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
-    # println()
-    # println("Finish Plotting || Starting to save the plot...")
-    # png(f2,string("Results/figure_Return_Risk.jpg"))
-    # println("Plot saved!")
-    # println()
-    # println("Code Stops!")
 
-    println(bestProportions([1,2,3,4,5], meanStandardA, correlationMatrix, L, U, 0.4))
+    # test bestProportions alone
+    # println(bestProportions([1,2,3,4,5], meanStandardA, correlationMatrix, L, U, 0.4))
 
+    #store best portfolio and rest of them, ony best porfolio will be saved
+    bestPortfolios  = Array{Any}(undef, 0, 7)
+    bestPortfolios = [bestPortfolios; reshape(["lambda", "Return", "Risk", "E[x,lambda]", "Stocks", "Investment", "Pareto"], (1,7))]
+    portfolios  = Array{Float64}(undef, 0, 7)
+    pareto = Array{Float64}(undef, 0, 7)
+
+    # here should be the loop for the lambdas
+    step = 1/P
+    𝜆s = collect(0.01:step:1)
+
+    for 𝜆 in 𝜆s
+        println("Selecting best portfolios for lambda ", 𝜆)
+        sol = geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
+
+        #plot risk vs return scatter plot
+
+        paretoPortfolios, sol, best  = paretoFinder(sol, riskReturn)
+
+        scatter(sol[:,3],sol[:,2], reuse = false, color = "orange", label = "Portfolios")
+        scatter!(best[:,3],best[:,2], reuse = false, color = "red", label = "Best portfolios")
+        scatter!(paretoPortfolios[:,3],paretoPortfolios[:,2], reuse = false, color = "black", label = "Pareto front")
+
+        f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue", label = "Efficient Frontier Line")
+        png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
+
+        bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
+        portfolios = [portfolios; sol]
+        pareto = [pareto; paretoPortfolios]
+    end
+    println()
+    println("Finished calculation of portfolios for each lambda")
+    #Final plots for every lambda
+    println()
+    println("Start Plotting...")
+    scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
+    scatter!(bestPortfolios[2:end,3],bestPortfolios[2:end,2], reuse = false, color = "red", label = "Best Portfolios")
+    scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
+    f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
+    println()
+    println("Finish Plotting || Starting to save the plot...")
+    png(f2,string("Results/figure_Return_Risk.jpg"))
+    println("Plot saved!")
+    println()
+    println("Saving Best Result in CSV file...")
+    writedlm("Results/results.csv",  bestPortfolios, ';')
+    println("File Saved...")
+    println()
+    println("Code Stops!")
 
 end
 
