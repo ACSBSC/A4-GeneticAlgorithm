@@ -60,11 +60,14 @@ function mutation(selected, meanStandardA)
 
     𝜎 = string(meanStandardA[selected[rnd], 2])
     m = sizeof(𝜎)
-    𝜎 = split(𝜎, "")
-    n = 𝜎[m-1]
-    𝜎[m-1] = 𝜎[m]
-    𝜎[m] = n
+    if m > 4
+        𝜎 = split(𝜎, "")
+        n = 𝜎[m-1]
+        𝜎[m-1] = 𝜎[m]
+        𝜎[m] = n
+    end
     𝜎 = join(𝜎)
+    #println(𝜎)
     𝜎 = parse(Float64,  𝜎)
     meanStandardA[selected[rnd], 2] = 𝜎
 
@@ -95,11 +98,18 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
             selected = reshape(selected, (1,5))
             p_next = [p_next; selected] #array of indexes
             
-            x, ret, risk = bestProportions(selected, meanStandardA, correlationMatrix, L, U, K)
+            x, ret, risk, E = bestProportions(selected, meanStandardA, correlationMatrix, L, U, K, 𝜆)
 
-            E = 𝜆*risk - (1-𝜆)*ret
-            sol = [sol; reshape([𝜆, ret, risk, E, selected, x, pareto], (1,7))]
+            if risk < 0.01
+                sol = [sol; reshape([𝜆, ret, risk, E, selected, x, pareto], (1,7))]
+            end
         end
+        eliteStocks = zeros(Int, K)
+        for i in 1:K
+            eliteStocks[i] = population[rand(1:N)]
+        end
+        population = p_next
+        population = [population; reshape(eliteStocks, (1,5))]
         
     end
     println()
