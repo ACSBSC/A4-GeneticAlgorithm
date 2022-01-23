@@ -94,7 +94,7 @@ function particle_swarm(
 end
 
 function bestProportions(selectedAssets, meanStandardA, correlationMatrix, L, U, 𝜆)
-    nDim = 2
+    nDim = 1
     K = size(selectedAssets,2)
     nParticle = K
     nInter = 4000
@@ -102,9 +102,7 @@ function bestProportions(selectedAssets, meanStandardA, correlationMatrix, L, U,
     xs = zeros(K)
     ys = zeros(nRun)
 
-    # fitFunc(x) = 𝜆 * expectedRisk(K, xs, meanStandardA, correlationMatrix, selectedAssets)
-    # + (1-𝜆) * (-expectedReturn(K, xs, meanStandardA, selectedAssets))
-    fitFunc(x) = (x[1] - 1 / 2)^2 + (x[2] - 1 / 2)^2
+    fitFunc(x) = 𝜆 * expectedRisk(1, x[1], meanStandardA, correlationMatrix, selectedAssets) + (1-𝜆) * (-expectedReturn(1, x[1], meanStandardA, selectedAssets))
 
     xs = particle_swarm(
         fitFunc,
