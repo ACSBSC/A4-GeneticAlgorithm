@@ -1,10 +1,13 @@
 using DelimitedFiles
 using Plots
+using Statistics
 include("ga.jl")
 
 function paretoFinder(sol, riskReturn)
     paretoPortfolios  = Array{Float64}(undef, 0, 7)
     bestPortfolios  = Array{Float64}(undef, 0, 7)
+    m = maximum(sol[:, 2]) - minimum(sol[:, 2])
+    r = minimum(riskReturn[:,2])
     for i in 1: size(sol, 1)
         for j in 1:size(riskReturn, 1)
             if (sol[i,2] < riskReturn[j,1]+0.00003 && sol[i,2] > riskReturn[j,1]-0.00003) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
@@ -14,6 +17,10 @@ function paretoFinder(sol, riskReturn)
             if (sol[i,2] > riskReturn[j,1]) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
                 bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
             end
+            if (sol[i,2] > m && sol[i,2] > minimum(riskReturn[:,1])) && (sol[i,3] < r)
+                bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
+            end
+            
         end
     end
     return paretoPortfolios, sol, bestPortfolios
@@ -32,14 +39,41 @@ function main(args)
         )
     end
 
-    path = "./A4-portfolios/" * args[1]
-    var = split(args[1], ".")
-    path2 = "./A4-portfolios/" * var[1] * "_eff.txt"
-    println(path2)
     K = 5
     L = 0.1
     U = 1
     P = 101
+    name = ""
+    config = args[1]
+    open(config) do f
+
+        # line_number
+        line = 0
+        # read till end of file
+        while !eof(f)
+            # read a new / next line for every iteration
+            s = readline(f)
+            if line == 0
+                name = s
+            elseif line == 1
+                K = parse(Int64, s)
+            elseif line == 2
+                L = parse(Float64, s)
+            elseif line == 3
+                U = parse(Float64, s)
+            else
+                P = parse(Int64, s)
+            end
+
+            line += 1
+        end
+    end
+
+    path = "./A4-portfolios/" * name
+    var = split(name, ".")
+    path2 = "./A4-portfolios/" * var[1] * "_eff.txt"
+    println(path2)
+    
     N = 0
 
     meanStandardA = Array{Float64}(undef, 0, 2)
@@ -128,22 +162,32 @@ function main(args)
         f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue", label = "Efficient Frontier Line")
         png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
 
+        
         bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
+        
         portfolios = [portfolios; sol]
         pareto = [pareto; paretoPortfolios]
     end
     println()
+    
     println("Finished calculation of portfolios for each lambda")
     #Final plots for every lambda
     println()
     println("Start Plotting...")
+
+    bestPortfolios = unique(bestPortfolios,dims=1)
+
     scatter(portfolios[:,3],portfolios[:,2], reuse = false, color = "yellow", label = "Portfolios")
     scatter!(bestPortfolios[2:end,3],bestPortfolios[2:end,2], reuse = false, color = "red", label = "Best Portfolios")
     scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
     f2 = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
     println()
+    scatter(bestPortfolios[2:end,3],bestPortfolios[2:end,2], reuse = false, color = "red", label = "Best Portfolios")
+    scatter!(pareto[:,3],pareto[:,2], reuse = false, color = "black", label = "Paretos")
+    f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier", ylabel="Return", xlabel="Risk",color = "blue")
     println("Finish Plotting || Starting to save the plot...")
-    png(f2,string("Results/figure_Return_Risk.jpg"))
+    png(f,string("Results/figure_Return_Risk.jpg"))
+    png(f2,string("Results/figure_Return_Risk_all.jpg"))
     println("Plot saved!")
     println()
     println("Saving Best Result in CSV file...")
@@ -151,6 +195,8 @@ function main(args)
     println("File Saved...")
     println()
     println("Code Stops!")
+
+    
 
 end
 
