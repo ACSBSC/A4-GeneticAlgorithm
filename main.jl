@@ -20,7 +20,7 @@ function paretoFinder(sol, riskReturn)
             if (sol[i,2] > m && sol[i,2] > minimum(riskReturn[:,1])) && (sol[i,3] < r)
                 bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
             end
-            
+
         end
     end
     return paretoPortfolios, sol, bestPortfolios
@@ -73,7 +73,7 @@ function main(args)
     var = split(name, ".")
     path2 = "./A4-portfolios/" * var[1] * "_eff.txt"
     println(path2)
-    
+
     N = 0
 
     meanStandardA = Array{Float64}(undef, 0, 2)
@@ -162,14 +162,14 @@ function main(args)
         f = plot!(riskReturn[:,2],riskReturn[:,1],title = "Efficient frontier for lambda = "*string(𝜆), ylabel="Return", xlabel="Risk",color = "blue", label = "Efficient Frontier Line")
         png(f,string("Plots/figure_Return_Risk_lambda_"*string(𝜆)*".jpg"))
 
-        
+
         bestPortfolios  = [bestPortfolios  ; best; paretoPortfolios]
-        
+
         portfolios = [portfolios; sol]
         pareto = [pareto; paretoPortfolios]
     end
     println()
-    
+
     println("Finished calculation of portfolios for each lambda")
     #Final plots for every lambda
     println()
