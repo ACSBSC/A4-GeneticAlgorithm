@@ -1,3 +1,5 @@
+# Credit : https://github.com/bingining/PSO.jl.git
+
 const Float = Float64
 
 
@@ -10,10 +12,10 @@ const Float = Float64
 
 `velocity::Array{Float, 1}`: current velocity of the particle
 
-`pBest::Array{Float, 1}`: the position at which the particle has 
+`pBest::Array{Float, 1}`: the position at which the particle has
 the best-fit value through particle's history
 
-`lBest::Array{Float, 1}`: the position at which the local group has 
+`lBest::Array{Float, 1}`: the position at which the local group has
 the best-fit value through local group's history
 
 `fitValue::Float`: the fit-value at current position
@@ -22,23 +24,23 @@ the best-fit value through local group's history
 
 `fitlBest::Float`: the fit-value at `lBest`
 
-`nFitEval::Int`: number of the evaluation of the fitness function 
+`nFitEval::Int`: number of the evaluation of the fitness function
 (which does not take the steps outside the parameter space into account)
 """
 mutable struct Particle
     nDim::Int
-    
+
     position::Array{Float, 1}
     velocity::Array{Float, 1}
     pBest::Array{Float, 1}
     lBest::Array{Float, 1}
-    
+
     fitValue::Float
     fitpBest::Float
     fitlBest::Float
-    
+
     nFitEval::Int
-    
+
     # initialize the particle
     # with the lBest = pBest = position = random numbers
     # and fitlBest = fitpBest = fitValue = Inf
@@ -48,16 +50,16 @@ mutable struct Particle
         velocity = rand(nDim) - position
         pBest = position
         lBest = position
-        
+
         fitValue = Inf
         fitpBest = fitValue
         fitlBest = fitValue
-        
+
         nFitEval = 0
-        
-        new(nDim, position, velocity, pBest, lBest, 
+
+        new(nDim, position, velocity, pBest, lBest,
             fitValue, fitpBest, fitlBest, nFitEval)
-    end       
+    end
 end
 
 # test
@@ -67,12 +69,12 @@ end
 """
     initFitValue!(fitFunc::Function, p::Particle)
 
-Initiate the `fitValue` for the `p` particle using the fitness 
+Initiate the `fitValue` for the `p` particle using the fitness
 function `fitFunc`.
 """
 function initFitValue!(fitFunc::Function, p::Particle)
     p.fitValue = fitFunc(p.position)
-    
+
     # update nFitEval
     p.nFitEval += 1
     nothing
@@ -89,12 +91,12 @@ end
 """
     updatePositionAndFitValue!(fitFunc::Function, nDim::Int, p::Particle)
 
-Update the `position` and `fitValue` for the `p` particle using 
+Update the `position` and `fitValue` for the `p` particle using
 the fitness function `fitFunc` with `nDim` parameters.
 """
 function updatePositionAndFitValue!(fitFunc::Function, p::Particle)
     p.position += p.velocity
-    
+
     # if position is outside the paramter space, we set fitValue = Inf
     for x in p.position
         if (x < 0 || x > 1)
@@ -105,7 +107,7 @@ function updatePositionAndFitValue!(fitFunc::Function, p::Particle)
     # update nFitEval
     p.nFitEval += 1
     p.fitValue = fitFunc(p.position)
-    
+
     nothing
 end
 
@@ -125,7 +127,7 @@ end
 Update the `pBest` and `fitpBest` for `p` particle.
 """
 function updatepBestAndFitpBest!(p::Particle)
-    if p.fitValue < p.fitpBest 
+    if p.fitValue < p.fitpBest
         p.fitpBest  = p.fitValue
         p.pBest = p.position
     end
@@ -149,10 +151,10 @@ end
 Update the `velocity` of the particle.
 """
 function updateVelocity!(p::Particle, w::Float, c1::Float, c2::Float)
-    p.velocity = w * p.velocity + 
-    c1 * rand() * (p.pBest - p.position) + 
+    p.velocity = w * p.velocity +
+    c1 * rand() * (p.pBest - p.position) +
     c2 * rand() * (p.lBest - p.position)
-    
+
     nothing
 end
 
@@ -167,22 +169,22 @@ Return the indices for the `nNeighbor` neiborhoods of the `i`th particle
 in a swarm with `nParticle` particles.
 """
 function neiborIndices(i::Int, nNeibor::Int, nParticle::Int)
-    
+
     # number of neighbors should be larger than 3
     nNeibor = max(3, nNeibor)
-    
+
     # number of neighbors on the left side of i-th particle
     nLeft = (nNeibor - 1) ÷ 2
-    
+
     # the index of the starting particle in the local group
     startIndex = (i - nLeft)
-    
+
     # the index of the ending particle in the local group
     endIndex = startIndex + nNeibor -1
-    
+
     # indices for the local group
     indices = collect(startIndex:endIndex)
-    
+
     # ajust the indices to be in the range(1:nParticle)
     for i in 1:nNeibor
         if indices[i] < 1
@@ -191,12 +193,12 @@ function neiborIndices(i::Int, nNeibor::Int, nParticle::Int)
             indices[i] -= nParticle
         end
     end
-    
+
     indices
 end
 
 # test
-# neiborIndices(1, 3, 40)  
+# neiborIndices(1, 3, 40)
 
 
 
@@ -208,9 +210,9 @@ end
 `nDim::Int`: dimension of the parameter space to be explored
 
 `nParticle::Int`: number of particles in a swarm
-    
+
 `nNeibor::Int`: number of neighborhoods (particles) in a local group
-    
+
 `nInter::Int`: number of iterations for each particles to move forward
 
 `c1::Float`: cognative constant
@@ -222,66 +224,66 @@ end
 `wMin::Float`: the minimum value of inertia weight
 
 `w::Float`: the current value of inertia weight
-    
-`gBest::Array{Float, 1}`: the position at which the swarm has 
+
+`gBest::Array{Float, 1}`: the position at which the swarm has
 the best-fit value through the history
-    
+
 `fitgBest::Float`: the fit-value at `gBest`
-    
+
 `particles::Array{Particle, 1}`: the particles in a swarm
 
-`nFitEvals::Int`: number of the evaluation of the fitness function 
+`nFitEvals::Int`: number of the evaluation of the fitness function
 (which does not take the steps outside the parameter space into account)
 """
 mutable struct Swarm
     fitFunc::Function
     nDim::Int
-    
+
     nParticle::Int
     nNeibor::Int
     nInter::Int
-    
+
     c1::Float
     c2::Float
-    
+
     wMax::Float
     wMin::Float
     w::Float
-    
-    gBest::Array{Float, 1}    
+
+    gBest::Array{Float, 1}
     fitgBest::Float
-    
+
     particles::Array{Particle, 1}
-    
+
     nFitEvals::Int
-    
+
     # initialize the swarm
-    function Swarm(fitFunc::Function, nDim::Int; 
-            nParticle::Int=40, 
+    function Swarm(fitFunc::Function, nDim::Int;
+            nParticle::Int=40,
             nNeibor::Int=3, nInter::Int=2000,
             c1::Float=2.0, c2::Float=2.0,
             wMax::Float=0.9, wMin::Float=0.4)
-        
+
         if nNeibor > nParticle
-            error("Number of particles in a local group should not exceed 
+            error("Number of particles in a local group should not exceed
                 the totoal number of particles in the swarm!")
-        end    
-        
+        end
+
         w = wMax
-        
+
         gBest = rand(nDim)
         fitgBest = Inf
-        
+
         # initialize the swarm with nParticle
         particles = [Particle(nDim) for i in 1:nParticle]
-        
-        
+
+
         nFitEvals = 0
-                
-        new(fitFunc, nDim, nParticle, nNeibor, nInter, 
-            c1, c2, wMax, wMin, w, gBest, 
-            fitgBest, particles, nFitEvals)        
-    end       
+
+        new(fitFunc, nDim, nParticle, nNeibor, nInter,
+            c1, c2, wMax, wMin, w, gBest,
+            fitgBest, particles, nFitEvals)
+    end
 end
 
 # test
@@ -294,13 +296,13 @@ end
     updatelBestAndFitlBest!(s::Swarm)
 
 Update lBest and fitlBest for each particle in the swarm `s`.
-"""        
+"""
 function updatelBestAndFitlBest!(s::Swarm)
     for i in 1:s.nParticle
         neiborIds = neiborIndices(i, s.nNeibor, s.nParticle)
         neiborFits = [s.particles[Id].fitValue for Id in neiborIds]
         fitlBest, index = findmin(neiborFits)
-        
+
         if fitlBest < s.particles[i].fitlBest
             # neibor == local group
             lBest = s.particles[neiborIds[index]].position
@@ -314,7 +316,7 @@ end
 # test
 # fitFunc(x) = x[1]^2 + x[2]^2
 # nDim = 2
-# s = Swarm(fitFunc, nDim)  
+# s = Swarm(fitFunc, nDim)
 # updatelBestAndFitlBest!(s)
 # s.particles[1]
 
@@ -324,13 +326,13 @@ end
     updategBestAndFitgBest!(s::Swarm)
 
 Update gBest and fitgBest for the swarm `s`.
-"""        
+"""
 function updategBestAndFitgBest!(s::Swarm)
-    
+
     gFits = [particle.fitValue for particle in s.particles]
     fitgBest, index = findmin(gFits)
     if fitgBest < s.fitgBest
-        s.gBest = s.particles[index].position   
+        s.gBest = s.particles[index].position
         s.fitgBest = fitgBest
     end
     nothing
@@ -339,7 +341,7 @@ end
 # test
 # fitFunc(x) = x[1]^2 + x[2]^2
 # nDim = 2
-# s = Swarm(fitFunc, nDim)  
+# s = Swarm(fitFunc, nDim)
 # updategBestAndFitgBest!(s)
 # s.gBest
 
@@ -350,19 +352,19 @@ end
 Initiation (0st iteration) the swarm `s`.
 """
 function initSwarm(s::Swarm)
-    
+
     # initiate the fitValue for each particle
     for particle in s.particles
         initFitValue!(s.fitFunc, particle)
         updatepBestAndFitpBest!(particle)
     end
-    
+
     # update lBest and fitlBest for the swarm
     updatelBestAndFitlBest!(s)
-    
+
     # update gBest and fitgBest for the swarm
     updategBestAndFitgBest!(s)
-    
+
     nothing
 end
 
@@ -383,7 +385,7 @@ Update the inertia weight after each iteration.
 function updateInertia!(s::Swarm)
     dw = (s.wMax - s.wMin)/s.nInter
     s.w -= dw
-    
+
     nothing
 end
 
@@ -403,7 +405,7 @@ Update the `velocity` for each particle in the swarm `s`.
 function updateVelocity!(s::Swarm)
     for particle in s.particles
         updateVelocity!(particle, s.w, s.c1, s.c2)
-    end        
+    end
     nothing
 end
 
@@ -425,7 +427,7 @@ Update the `position` and `fitValue` for each particle in the swarm `s`.
 function updatePositionAndFitValue!(s::Swarm)
     for particle in s.particles
         updatePositionAndFitValue!(s.fitFunc, particle)
-    end        
+    end
     nothing
 end
 
@@ -448,20 +450,20 @@ One iteration for the swarm `s`.
 function updateSwarm(s::Swarm)
     # update the velocity for each particle in the swarm
     updateVelocity!(s::Swarm)
-    
+
     # update the position and fitValue for each particle in the swarm
     updatePositionAndFitValue!(s::Swarm)
-    
+
     # update the lBest and fitlBest for each particle in the swarm
     updatelBestAndFitlBest!(s::Swarm)
-    
+
     # update the gBest and fitgBest for the swarm
-    updategBestAndFitgBest!(s::Swarm) 
-    
+    updategBestAndFitgBest!(s::Swarm)
+
     # update the inertia weigh w for each particle in the swarm
     updateInertia!(s::Swarm)
-    
-    nothing 
+
+    nothing
 end
 
 # test
