@@ -55,8 +55,8 @@ end
 
 # swap numbers within 𝜎 of the selected stocks
 # one random stock is mutated
-function mutation(selected, meanStandardA)
-    rnd = rand(1:5)
+function mutation(selected, meanStandardA, K)
+    rnd = rand(1:K)
 
     𝜎 = string(meanStandardA[selected[rnd], 2])
     m = sizeof(𝜎)
@@ -85,16 +85,16 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
     
 
     for gen in 1:num_gen
-        p_next = Array{Int}(undef, 0, 5)
+        p_next = Array{Int}(undef, 0, K)
 
         for pair in 1:N/K
 
             selected = selection(population, meanStandardA, K, N)
 
             meanStandardA = crossover(selected, meanStandardA, K)
-            meanStandardA = mutation(selected, meanStandardA)
+            meanStandardA = mutation(selected, meanStandardA, K)
 
-            selected = reshape(selected, (1,5))
+            selected = reshape(selected, (1,K))
             p_next = [p_next; selected] #array of indexes
             
             x, risk,ret, E = bestProportions(selected, meanStandardA, correlationMatrix, L, U, 𝜆)
@@ -108,7 +108,7 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
             eliteStocks[i] = population[rand(1:N)]
         end
         population = p_next
-        population = [population; reshape(eliteStocks, (1,5))]
+        population = [population; reshape(eliteStocks, (1,K))]
         
     end
     return sol
