@@ -6,7 +6,7 @@ include("ga.jl")
 function paretoFinder(sol, riskReturn)
     paretoPortfolios  = Array{Float64}(undef, 0, 7)
     bestPortfolios  = Array{Float64}(undef, 0, 7)
-    m = maximum(sol[:, 2])- 2*minimum(sol[:, 2])
+    m = maximum(sol[:, 2]) - minimum(sol[:, 2])
     r = minimum(riskReturn[:,2])
     for i in 1: size(sol, 1)
         for j in 1:size(riskReturn, 1)
@@ -17,7 +17,7 @@ function paretoFinder(sol, riskReturn)
             if (sol[i,2] > riskReturn[j,1]) && (sol[i,3] < riskReturn[j,2]+0.00003 && sol[i,3] > riskReturn[j,2]-0.00003)
                 bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
             end
-            if (sol[i,2] > m) && (sol[i,3] < r)
+            if (sol[i,2] > m && sol[i,2] > minimum(riskReturn[:,1])) && (sol[i,3] < r)
                 bestPortfolios = [bestPortfolios; reshape(sol[i,:], (1,7))]
             end
             
@@ -39,14 +39,41 @@ function main(args)
         )
     end
 
-    path = "./A4-portfolios/" * args[1]
-    var = split(args[1], ".")
-    path2 = "./A4-portfolios/" * var[1] * "_eff.txt"
-    println(path2)
     K = 5
     L = 0.1
     U = 1
     P = 101
+    name = ""
+    config = args[1]
+    open(config) do f
+
+        # line_number
+        line = 0
+        # read till end of file
+        while !eof(f)
+            # read a new / next line for every iteration
+            s = readline(f)
+            if line == 0
+                name = s
+            elseif line == 1
+                K = parse(Int64, s)
+            elseif line == 2
+                L = parse(Float64, s)
+            elseif line == 3
+                U = parse(Float64, s)
+            else
+                P = parse(Int64, s)
+            end
+
+            line += 1
+        end
+    end
+
+    path = "./A4-portfolios/" * name
+    var = split(name, ".")
+    path2 = "./A4-portfolios/" * var[1] * "_eff.txt"
+    println(path2)
+    
     N = 0
 
     meanStandardA = Array{Float64}(undef, 0, 2)

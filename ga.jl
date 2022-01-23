@@ -83,7 +83,6 @@ function geneticAlgorithm(N, K, 𝜆, L, U, correlationMatrix, meanStandardA)
    
     sol = Array{Float64}(undef, 0, 7)
     
-    x = [0.2, 0.35, 0.15, 0.2, 0.1]
 
     for gen in 1:num_gen
         p_next = Array{Int}(undef, 0, 5)
